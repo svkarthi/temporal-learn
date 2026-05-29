@@ -13,6 +13,37 @@
 
 A caller workflow calls a `compose` operation on a `greeting-service` Nexus service via a Nexus endpoint.
 
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        Temporal Server                              │
+│                                                                     │
+│   ┌─────────────────────────┐    ┌──────────────────────────────┐  │
+│   │  nexus-caller-task-queue│    │  nexus-handler-task-queue    │  │
+│   └────────────┬────────────┘    └──────────────┬───────────────┘  │
+│                │                                │                  │
+│        ┌───────┴────────┐          ┌────────────┴──────────┐       │
+│        │  Nexus Endpoint│          │                       │       │
+│        │ greeting-endpoint─────────►  greeting-service     │       │
+│        └───────────────┘          └───────────────────────┘       │
+└────────────────────────────────────────────────────────────────────┘
+         │                                        │
+         │                                        │
+┌────────┴──────────┐                  ┌──────────┴──────────┐
+│   Caller Worker   │                  │   Handler Worker    │
+│ (callerworker/)   │                  │    (handler/)       │
+│                   │                  │                     │
+│  CallerWorkflow   │                  │  ComposeOperation   │
+└────────┬──────────┘                  └─────────────────────┘
+         │
+┌────────┴──────────┐
+│     Starter       │
+│   (starter/)      │
+└───────────────────┘
+```
+
+**Call flow:**
 ```
 starter
   → CallerWorkflow (nexus-caller-task-queue)
